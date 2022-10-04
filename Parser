@@ -1,4 +1,3 @@
-
 (define env '((a 1) (b 2) (c 5)))
 ; resolve a
 (define resolve
@@ -33,7 +32,7 @@
              (neo-parser (cadddr neo-code))))
       ;(ask (bool op num1 num2) (neo-exp1) (neo-exp2)) > (ask-exp (bool-exp ...) (parsed-neo-exp1) (parsed-neo-exp2))
       ((equal? (car neo-code) 'ask)
-       (list 'ask-exp
+       (cons 'ask-exp
              (map neo-parser (cdr neo-code))))
       ;(function (x y z,...) x)
       ((equal? (car neo-code) 'function)
@@ -121,9 +120,6 @@
 ;(define sample-code '(call (function(x) (math + x 1)) 4))
 ;(define sample-code '(call (function(x y z)(math + (math + x y) z)) (1 2 3)))
 ;(display (neo-parser sample-code))
-;(run-neo-parsed-code (neo-parser sample-code) env)
-(define sample-code '(call (function () (ask (bool > a b) (math + a b) (math + a b))) (a)))
+(define sample-code '(call (function () (ask (bool > a b) (math - a b) (math + a b))) (a)))
 (display (neo-parser sample-code))
-
-
-
+(display(run-neo-parsed-code (neo-parser sample-code) env))
