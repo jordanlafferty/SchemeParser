@@ -45,17 +45,15 @@
            (run-neo-parsed-code (cadddr parsed-code) env)))
       ((equal? (car parsed-code) 'func-exp)
        (run-neo-parsed-code (cadr (caddr parsed-code)) env))
+      ;(app-exp (func-exp (params (x)) (body-exp (let-exp ((a 1) (b 2) (c 3)) (math-exp + (var-exp a) (var-exp b))))) ((num-exp 5)))
+      ((equal? (car parsed-code) 'let-exp)
+       (run-let-exp parsed-code env))
       (else (run-neo-parsed-code
              (cadr parsed-code) ;function expression
              (extend-env
               (cadr (cadr (cadr parsed-code)))
               (map (lambda (exp) (run-neo-parsed-code exp env)) (caddr parsed-code));list of values ((num-exp 1) (var-exp a) (math-exp + (num-exp 2) (num-exp 3)))
-              env);environment scope update
-             )
-            )
-      )
-    ) 
-  )
+              env))))))
 
 
 ;run bool parsed code
@@ -88,9 +86,14 @@
       ((equal? op '/) (/ num1 num2))  ;/ 1 1 float division
       ((equal? op '//) (quotient num1 num2))  ;// 1 1 interger division
       ((equal? op '%) (modulo num1 num2))  ;% 1 1 modulo
-      (else #false)
-      )
-    )
-  )
+      (else #false))))
+  
+    (define run-let-exp
+  (lambda (parsed-code env)
+    (let* ((list-of-names (getVarnames (elementAt parsed-code 1)))
+          (list-of-values (getValues (elementAt parsed-code 1)))
+          (new_env (extend-env list-of-names list-of-values env))
+          (body (elementAt parsed-code 2)))
+    (run-neo-parsed-code body new_env))))
 
 (provide (all-defined-out))
