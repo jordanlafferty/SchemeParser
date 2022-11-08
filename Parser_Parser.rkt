@@ -1,5 +1,6 @@
 #lang racket
 (require "Parser_Utility.rkt")
+
 (define neo-parser
   (lambda (neo-code)
     (cond
@@ -16,8 +17,7 @@
       ;(call (function (x y z) (math + (math + x y) z)) (1 2 3)) ->
       ;(app-exp (func-exp (params (identifier1, identifier2, identifer3 ...)) (body-exp)) ((neo-exp1 neo-exp2 neo-exp3 ...))
       ((equal? (car neo-code) 'call) (neo-call-code-parser neo-code))
-      ;(let-exp)
-            ((equal? (car neo-code) 'local-vars) (neo-let-code-parser neo-code))
+      ((equal? (car neo-code) 'local-vars) (neo-let-code-parser neo-code))
       (else (map neo-parser neo-code)) ;((neo-parser 1) (neo-parser 'a) (neo-parser (math + 1 2)))
       )
     )
@@ -63,11 +63,12 @@
     )
   )
 
+;(local-vars ((a 1) (b 2) (c 3)) (neo-exp)) = neo-code
+;(let-exp ((a 1) (b 2) (c 3)) (parsed-neo-exp))
 (define neo-let-code-parser
   (lambda (neo-code)
     (list 'let-exp (elementAt neo-code 1) (neo-parser (elementAt neo-code 2)))
     )
   )
-
 
 (provide (all-defined-out))
