@@ -1,6 +1,7 @@
 #lang racket
 (require "Parser_Utility.rkt")
 
+
 (define neo-parser
   (lambda (neo-code)
     (cond
@@ -63,11 +64,19 @@
     )
   )
 
-;(local-vars ((a 1) (b 2) (c 3)) (neo-exp)) = neo-code
+;(local-vars ((a 1) (b 2) (c a)) (neo-exp)) = neo-code
 ;(let-exp ((a 1) (b 2) (c 3)) (parsed-neo-exp))
+;(let-exp ((a (num-exp 1)) (b (num-exp 2)) (c (var-exp a))) (parsed-neo-code))
+;1 -> (num-exp 1) = code -> (neo-parser code)
+;(a 1) -> (a (num-exp 1)) -> code == (a 1) < (list (car code) (neo-parser (cadr code)))
+;((a 1) (b 2) (c a)) -> ((a (num-exp 1)) (b (num-exp 2)) (c (var-exp a)))
+;((map (lambda (pair) (list (car pair) (neo-parser (cadr pair))) lst)
 (define neo-let-code-parser
   (lambda (neo-code)
-    (list 'let-exp (elementAt neo-code 1) (neo-parser (elementAt neo-code 2)))
+    (list 'let-exp
+          (map (lambda (pair) (list (car pair) (neo-parser (elementAt pair 1))))
+               (elementAt neo-code 1))
+           (neo-parser (elementAt neo-code 2)))
     )
   )
 
