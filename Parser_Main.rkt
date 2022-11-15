@@ -8,12 +8,9 @@
 ;(run-neo-parsed-code (neo-parser '(call (function (a) (call (function (r) a ) (a))) (5))) env)
 
 
-;(define sample-code '(call (function (r) (local-vars ((p 100)) (math / r p)) ) (a)))
-(define sample-code '(local-vars ((a 7) (b a) (x b)) (math + x a)))
+(define sample-code '(print a));
+;(define sample-code2 '(assign a));
+;(define sample-code '(local-vars ((a 7) (b a) (x b)) (math + x a)))
+(displayln (neo-parser sample-code))
 (define parsed-neo-code (neo-parser sample-code))
 (run-neo-parsed-code parsed-neo-code env)
-
-;(define parsed-neo-code (neo-parser '(call (function(a) (local-vars ((x 5) (y 6) (z 9)) (function (b)(math + a (math * b x))))) (2))))
-
-
-;(run-neo-parsed-code parsed-neo-code env)
