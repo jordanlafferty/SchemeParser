@@ -1,8 +1,5 @@
 #lang racket
-
 (require "Parser_Utility.rkt")
-
-
 ;resolve a value from variable environment
 (define resolve_scope;((a 1) (b 2) (c 5)), it gives two kinds of result. found return a value
   ; not found return #false
@@ -111,6 +108,11 @@
       ;(app-exp (func-exp (params (x)) (body-exp (let-exp ((a 1) (b 2) (c 3)) (math-exp + (var-exp a) (var-exp b))))) ((num-exp 5)))
       ((equal? (car parsed-code) 'let-exp)
        (run-let-exp parsed-code env))
+      ;print
+      ((equal? (car parsed-code) 'print-exp) (run-print-exp (cadr parsed-code) env))
+      ;((equal? (car parsed-code) 'assign-exp)
+       ;(run-assign-exp (elementAt parsed-code 1) ))
+      ;((equal
       (else (run-neo-parsed-code
              (cadr parsed-code) ;function expression
              (push_scope_to_env (cadr (cadr (cadr parsed-code)))
@@ -144,6 +146,14 @@
       )
     )
   )
+
+
+(define run-print-exp
+  (lambda (parsed-code env)
+    (display (string-append "**screen**" (number->string
+                                          (run-neo-parsed-code parsed-code env))))))
+
+      
 
 (define run-math-exp
   (lambda (op num1 num2)
