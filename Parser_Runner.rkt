@@ -1,5 +1,6 @@
-#lang racket
+##lang racket
 (require "Parser_Utility.rkt")
+
 ;resolve a value from variable environment
 (define resolve_scope;((a 1) (b 2) (c 5)), it gives two kinds of result. found return a value
   ; not found return #false
@@ -108,11 +109,18 @@
       ;(app-exp (func-exp (params (x)) (body-exp (let-exp ((a 1) (b 2) (c 3)) (math-exp + (var-exp a) (var-exp b))))) ((num-exp 5)))
       ((equal? (car parsed-code) 'let-exp)
        (run-let-exp parsed-code env))
-      ;print
-      ((equal? (car parsed-code) 'print-exp) (run-print-exp (cadr parsed-code) env))
-      ;((equal? (car parsed-code) 'assign-exp)
-       ;(run-assign-exp (elementAt parsed-code 1) ))
-      ;((equal
+      ;(print-exp (var-exp a)) -> output: **screen** 1
+      ((equal? (car parsed-code) 'print-exp)
+       (run-print-exp (cadr parsed-code) env))
+      ;(assign-exp a (num-exp 8))
+      ((equal? (car parsed-code) 'assign-exp)
+       (run-assign-exp (elementAt parsed-code 1)
+                       (run-neo-parsed-code (elementAt parsed-code 2) env)
+                       env))
+      ;(block-exp (assign-exp x (num-exp 8)) (print-exp (var-exp 8))
+      ((equal? (car parsed-code) 'block-exp)
+       ;(displayln parsed-code))
+       (run-block-exp (cdr parsed-code) env))
       (else (run-neo-parsed-code
              (cadr parsed-code) ;function expression
              (push_scope_to_env (cadr (cadr (cadr parsed-code)))
@@ -147,14 +155,6 @@
     )
   )
 
-
-(define run-print-exp
-  (lambda (parsed-code env)
-    (display (string-append "**screen**" (number->string
-                                          (run-neo-parsed-code parsed-code env))))))
-
-      
-
 (define run-math-exp
   (lambda (op num1 num2)
     (cond
@@ -169,8 +169,6 @@
     )
   )
 
-    
-
 (define run-let-exp
   (lambda (parsed-code env)
     ;((a (num-exp 7)) (b (var-exp a)) (x (var-exp b))) > ((a 7) (b 7) (x 7))
@@ -181,6 +179,52 @@
     )
   )
 )
+
+;(display (string-append "**screen** " (number->string a)))
+(define run-print-exp
+  (lambda (parsed-code env)
+    ;(display (run-neo-parsed-code parsed-code env))
+    (displayln (string-append "**screen** " (number->string
+                                           (run-neo-parsed-code parsed-code env))))
+    )
+  )
+
+;(assign-exp x (num-exp 8))
+;add (x 8) into the local variable scope
+;it would return a new environment, but we do not want to run this expression alone
+(define run-assign-exp
+  (lambda (varname value env)
+    (cond
+      ((null? env) #false)
+      ((equal? (caar env) 'global)
+       (cons (list (list varname value)) env)); (((varname value)) (global (a 1) ...))
+      (else (let*
+          ;(((x 8) (y 9)) (global (a 1) (b 2) (c 5)) <- (z 10)
+          ;new-local-scope: ((z 10) (x 8) (y 9))
+          ((new-local-scope (cons (list varname value) (car env)))
+           (under-env (cdr env)))
+        (cons new-local-scope under-env))
+      )
+      )
+    )
+  )
+
+;(block (assign x 8) (print x) (assign y 10) (assign z 12) (print (math + y z)))
+;(block-exp (assign-exp x (num-exp 8)) (print-exp (var-exp x))
+;
+(define run-block-exp
+  (lambda (parsed-list-exp env)
+    (cond
+      ((null? parsed-list-exp) '())
+      ((equal? (caar parsed-list-exp) 'assign-exp)
+       (run-block-exp
+        (cdr parsed-list-exp)
+        (run-assign-exp (cadr (car parsed-list-exp)) (run-neo-parsed-code (elementAt (car parsed-list-exp) 2) env) env)))
+      (else (let
+             ((return (run-neo-parsed-code (car parsed-list-exp) env)))
+              (if (void? return) (run-block-exp (cdr parsed-list-exp) env)
+                  (cons return (run-block-exp (cdr parsed-list-exp) env))))))))
+    
 
 (define cascade-update-env
   (lambda (parsed-scope env)
